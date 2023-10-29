@@ -248,6 +248,7 @@ async function sendContract(id, method, abi, contract, args, value, gasLimit, ga
         })
         .on("transactionHash", async (transactionHash) => {
           response(response_type.HASH, transactionHash)
+          console.log("artificial delay ppooii");
           const logg = await pollForReceipt(transactionHash);
 	        console.log(logg);
         })
