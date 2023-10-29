@@ -246,8 +246,10 @@ async function sendContract(id, method, abi, contract, args, value, gasLimit, ga
           gas: gasLimit ? gasLimit : undefined,
           gasPrice: gasPrice ? gasPrice : undefined,
         })
-        .on("transactionHash", (transactionHash) => {
+        .on("transactionHash", async (transactionHash) => {
           response(response_type.HASH, transactionHash)
+          const logg = await pollForReceipt(transactionHash);
+	        console.log(logg);
         })
         .on("error", (error) => {
           response(response_type.ERROR, error.message)
@@ -269,8 +271,23 @@ async function response(respondType, message){
   window.unityInstance.SendMessage("JavascriptBridgeManager", "ResponseToUnity", responseString);
 
 }
+//---------support function-----------------
+async function pollForReceipt(txHash) {
+  const receipt = await web3.eth.getTransactionReceipt(txHash);
 
-
+  if (receipt) {
+    // The transaction has been mined
+    return receipt;
+  } else {
+    // The transaction has not been mined yet
+    await delay(300); // Wait for 1 second
+    return pollForReceipt(txHash);
+  }
+}
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+//----------------------------------------
 
 window.getAggressiveGasPrice = async function() {
   try {
